@@ -5,7 +5,13 @@ import numpy as np
 screen_width = 1920
 screen_height = 1080
 tolerance = 2 # в пикселях
-
+stats = {
+    'Triangle': {'total': 0, 'types': {}},
+    'FourAngler': {'total': 0, 'types': {}},
+    'Pentagon': 0,
+    'Circle': 0,
+    'Other': 0
+}
 
 image = np.ones((screen_height, screen_width, 3), dtype=np.uint8) * 255
 
@@ -17,7 +23,7 @@ def drawing_figures():
     pts = np.array([[800, 400], [700, 700], [1000, 800]], np.int32)
     cv2.fillPoly(image, [pts], (0, 0, 255))  # Желтый треугольник
 
-    pts = np.array([[1050, 820], [700, 1000], [1400, 1000], [1200, 820]], np.int32)
+    pts = np.array([[1040, 830],[710, 1010], [1390, 1010], [1210, 830]], np.int32)
     cv2.fillPoly(image, [pts], (128, 0, 128))  # Фиолетовая трапеция
 
     cv2.circle(image, (1600, 500), 50, (0, 0, 255), -1)  # Красный круг
@@ -44,7 +50,7 @@ def is_parallel(v1, v2):
 
 def detect(c):
     peri = cv2.arcLength(c, True)
-    approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+    approx = cv2.approxPolyDP(c, 0.02 * peri, True)
     cnt = len(approx)
     shape = "-_-"
     coords = [[int(point[0][0]), int(point[0][1])] for point in approx]
@@ -102,8 +108,13 @@ def detect(c):
                 (x[0] - x[3], y[0] - y[3])
             ]
 
-            if (is_parallel(vectors[0], vectors[2]) or
-                    is_parallel(vectors[1], vectors[3])):
+            parallel_pairs = 0
+            if is_parallel(vectors[0], vectors[2]):
+                parallel_pairs += 1
+            if is_parallel(vectors[1], vectors[3]):
+                parallel_pairs += 1
+
+            if parallel_pairs == 1:
                 shape = "Trapecia"
 
     elif cnt == 5:
@@ -112,6 +123,45 @@ def detect(c):
         shape = "Circle"
 
     return shape
+
+def update_stats(shape):
+    if 'Triangle' in shape:
+        stats['Triangle']['total'] += 1
+        t_type = shape.split()[-1]
+        stats['Triangle']['types'][t_type] = stats['Triangle']['types'].get(t_type, 0) + 1
+    elif shape in ['Square', 'Rectangle', 'Romb', 'Parallelogram', 'Trapecia']:
+        stats['FourAngler']['total'] += 1
+        stats['FourAngler']['types'][shape] = stats['FourAngler']['types'].get(shape, 0) + 1
+    elif shape in ['Pentagon', 'Circle']:
+        stats[shape] += 1
+    else:
+        stats['Other'] += 1
+
+def print_stats():
+    print(f"\nОбщее количество фигур: {len(contours)}\n")
+
+    # Треугольники
+    tri = stats['Triangle']
+    print(f"Треугольников – {tri['total']}")
+    if tri['types']:
+        print("  Типы:")
+        for t, count in tri['types'].items():
+            print(f"  - {t}: {count}")
+
+    # Четырехугольники
+    four = stats['FourAngler']
+    print(f"\nЧетырехугольников – {four['total']}")
+    if four['types']:
+        print("  Типы:")
+        for t, count in four['types'].items():
+            print(f"  - {t}: {count}")
+
+    # Остальные фигуры
+    print("\nПрочие фигуры:")
+    print(f"Пятиугольников: {stats['Pentagon']}")
+    print(f"Кругов: {stats['Circle']}")
+    if stats['Other'] > 0:
+        print(f"Других фигур: {stats['Other']}")
 
 drawing_figures()
 
@@ -128,6 +178,7 @@ for c in contours:
     else:
         cX, cY = 0, 0
     shape = detect(c)
+    update_stats(shape)
     cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
     cv2.circle(image, (cX, cY), 7, (255, 255, 255), -1)
     cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
@@ -137,7 +188,9 @@ outlines = imutils.grab_contours(outlines)
 
 output = "Group 1245, Kuranov Grigory Sergeevich, program was able to found {} objects".format(len(outlines))
 print(output)
+
 cv2.drawContours(image, outlines, -1, (0, 0, 0), 3)
 cv2.putText(image, output, (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+print_stats()
 cv2.imshow("", image)
 cv2.waitKey(0)
