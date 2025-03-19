@@ -42,16 +42,16 @@ cv2.approxPolyDP
 Наконец, мы возвращаем идентифицированную форму.
 
 ## Определение центра фигуры для размещения названия фигуры
-![](https://github.com/IMNJL/Intellectual_systems/lab2/images_for_readme/img.png)
+![](https://github.com/IMNJL/Intellectual_systems/blob/main/lab2/images_for_readme/img.png)
 
 С помощью ``` cv2.moments(c)``` можно определить координаты центра
 
 ## Результат выполнения работы
 
-![](https://github.com/IMNJL/Intellectual_systems/lab2/images_for_readme/img_1.png)
+![](https://github.com/IMNJL/Intellectual_systems/blob/main/lab2/images_for_readme/img_1.png)
 
 Рисунок 1 - Расположенные фигуры
 
-![](https://github.com/IMNJL/Intellectual_systems/lab2/images_for_readme/img_2.png)
+![](https://github.com/IMNJL/Intellectual_systems/blob/main/lab2/images_for_readme/img_2.png)
 
 Рисунок 2 - Распознанные фигуры
