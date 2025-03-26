@@ -190,12 +190,10 @@ for c in contours:
     else:
         cX, cY = 0, 0
 
-    # Определение цвета из оригинального изображения
     color = original_image[cY, cX].tolist()
     color_tuple = tuple(color)
     color_name = color_map.get(color_tuple, 'Unknown')
 
-    # Вычисление площади
     area = cv2.contourArea(c)
 
     shape = detect(c)
@@ -204,7 +202,19 @@ for c in contours:
 
     cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
     cv2.circle(image, (cX, cY), 7, (255, 255, 255), -1)
-    cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+
+    lines = [
+        f"{shape}",
+        f"Area: {area:.0f}",
+        f"Color: {color_name}"
+    ]
+
+    y = cY - 30 # под типом фигуры - цвет и площадь
+    for line in lines:
+        (text_width, text_height), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
+        x = cX - text_width // 2
+        cv2.putText(image, line, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 0), 1)
+        y += text_height + 5
 
 outlines = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 outlines = imutils.grab_contours(outlines)
