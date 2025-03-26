@@ -122,44 +122,76 @@ def detect(c):
 
     return shape
 
-def update_stats(shape):
-    if 'Triangle' in shape:
-        stats['Triangle']['total'] += 1
-        t_type = shape.split()[-1]
-        stats['Triangle']['types'][t_type] = stats['Triangle']['types'].get(t_type, 0) + 1
-    elif shape in ['Square', 'Rectangle', 'Romb', 'Parallelogram', 'Trapecia']:
-        stats['FourAngler']['total'] += 1
-        stats['FourAngler']['types'][shape] = stats['FourAngler']['types'].get(shape, 0) + 1
-    elif shape in ['Pentagon', 'Circle']:
-        stats[shape] += 1
-    else:
-        stats['Other'] += 1
 
 def print_stats():
     print(f"\nОбщее количество фигур: {len(contours)}\n")
-
-    # Треугольники
     tri = stats['Triangle']
     print(f"Треугольников – {tri['total']}")
     if tri['types']:
         print("  Типы:")
-        for t, count in tri['types'].items():
-            print(f"  - {t}: {count}")
+        for t, items in tri['types'].items():
+            print(f"  - {t}: {len(items)}")
+            for i, item in enumerate(items, 1):
+                print(f"    {i}. Площадь: {item['area']:.2f}, Цвет: {item['color']}")
 
-    # Четырехугольники
     four = stats['FourAngler']
     print(f"\nЧетырехугольников – {four['total']}")
     if four['types']:
         print("  Типы:")
-        for t, count in four['types'].items():
-            print(f"  - {t}: {count}")
+        for t, items in four['types'].items():
+            print(f"  - {t}: {len(items)}")
+            for i, item in enumerate(items, 1):
+                print(f"    {i}. Площадь: {item['area']:.2f}, Цвет: {item['color']}")
 
-    # Остальные фигуры
     print("\nПрочие фигуры:")
     print(f"Пятиугольников: {stats['Pentagon']}")
+    if 'Pentagon_details' in stats:
+        for i, item in enumerate(stats['Pentagon_details'], 1):
+            print(f"  {i}. Площадь: {item['area']:.2f}, Цвет: {item['color']}")
+
     print(f"Кругов: {stats['Circle']}")
+    if 'Circle_details' in stats:
+        for i, item in enumerate(stats['Circle_details'], 1):
+            print(f"  {i}. Площадь: {item['area']:.2f}, Цвет: {item['color']}")
+
     if stats['Other'] > 0:
         print(f"Других фигур: {stats['Other']}")
+        if 'Other_details' in stats:
+            for i, item in enumerate(stats['Other_details'], 1):
+                print(f"  {i}. Площадь: {item['area']:.2f}, Цвет: {item['color']}")
+
+
+def update_stats(shape, area, color):
+    if 'Triangle' in shape:
+        stats['Triangle']['total'] += 1
+        t_type = shape.split()[-1]
+        if t_type not in stats['Triangle']['types']:
+            stats['Triangle']['types'][t_type] = []
+        stats['Triangle']['types'][t_type].append({'area': area, 'color': color})
+
+    elif shape in ['Square', 'Rectangle', 'Romb', 'Parallelogram', 'Trapecia']:
+        stats['FourAngler']['total'] += 1
+        if shape not in stats['FourAngler']['types']:
+            stats['FourAngler']['types'][shape] = []
+        stats['FourAngler']['types'][shape].append({'area': area, 'color': color})
+
+    elif shape == 'Pentagon':
+        stats['Pentagon'] += 1
+        if 'details' not in stats:
+            stats['Pentagon_details'] = []
+        stats['Pentagon_details'].append({'area': area, 'color': color})
+
+    elif shape == 'Circle':
+        stats['Circle'] += 1
+        if 'details' not in stats:
+            stats['Circle_details'] = []
+        stats['Circle_details'].append({'area': area, 'color': color})
+
+    else:
+        stats['Other'] += 1
+        if 'details' not in stats:
+            stats['Other_details'] = []
+        stats['Other_details'].append({'area': area, 'color': color})
 
 drawing_figures()
 original_image = image.copy()  # Сохраняем оригинальное изображение для определения цвета
@@ -198,7 +230,7 @@ for c in contours:
 
     shape = detect(c)
     detected_shapes.append({'shape': shape, 'area': area, 'color': color_name})
-    update_stats(shape)
+    update_stats(shape, area, color_name)
 
     cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
     cv2.circle(image, (cX, cY), 7, (255, 255, 255), -1)
@@ -225,15 +257,6 @@ print(output)
 cv2.drawContours(image, outlines, -1, (0, 0, 0), 3)
 cv2.putText(image, output, (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 print_stats()
-
-# Вывод площадей и цветов
-print("\nПлощади всех найденных фигур:")
-for idx, shape_info in enumerate(detected_shapes, 1):
-    print(f"Фигура {idx}: {shape_info['area']:.2f}")
-
-print("\nЦвета фигур:")
-for idx, shape_info in enumerate(detected_shapes, 1):
-    print(f"Фигура {idx}: {shape_info['color']}")
 
 cv2.imshow("", image)
 cv2.waitKey(0)
