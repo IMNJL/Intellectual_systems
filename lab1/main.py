@@ -5,10 +5,7 @@ import numpy as np
 screen_width = 1920
 screen_height = 1080
 
-
 image = np.ones((screen_height, screen_width, 3), dtype=np.uint8) * 255
-
-
 
 cv2.rectangle(image, (200, 200), (390, 390), (255, 0, 0), -1)  # Синий квадрат
 cv2.rectangle(image, (600, 250), (1000, 380), (0, 165, 255), -1)  # Оранжевый прямоугольник
