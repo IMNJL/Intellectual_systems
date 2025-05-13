@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
-image = cv2.imread('raw_imgs/img.png')
+image = cv2.imread('raw_imgs/img_1.png')
 
 output_image = np.ones_like(image) * 255
 
